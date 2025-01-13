@@ -1,0 +1,290 @@
+import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+  runApp(PyramidWordGame());
+}
+
+class PyramidWordGame extends StatefulWidget {
+  @override
+  _PyramidWordGameState createState() => _PyramidWordGameState();
+}
+
+class _PyramidWordGameState extends State<PyramidWordGame> {
+  List<Map<String, String>> pyramidWords = [
+    {"word": "اهرام", "question": "ما هو اسم هذا المعلم الشهير؟", "hint": "يعود للعصر المصري القديم"},
+    {"word": "فراعنة", "question": "من هم حكام مصر القديمة؟", "hint": "كانوا حكاماً للبلاد القديمة"},
+    {"word": "نفرتيتي", "question": "من هي الملكة المصرية صاحبة التمثال الشهير؟", "hint": "زوجة أخناتون"},
+    {"word": "توت", "question": "ما اسم الملك الذي اكتشف مقبرته هوارد كارتر؟", "hint": "أشهر فراعنة مصر الشباب"},
+    {"word": "رمسيس", "question": "من هو الفرعون الذي حكم مصر لأطول فترة؟", "hint": "لقب بالفرعون العظيم"},
+    {"word": "خوفو", "question": "من هو باني الهرم الأكبر؟", "hint": "من أشهر ملوك الأسرة الرابعة"},
+    {"word": "سقارة", "question": "ما اسم المنطقة التي بها أقدم هرم مدرج؟", "hint": "منطقة أثرية قرب الجيزة"},
+    {"word": "كليوباترا", "question": "من هي آخر ملكة حكمت مصر القديمة؟", "hint": "ملكة البطالمة"},
+    {"word": "حتشبسوت", "question": "من هي الملكة التي حكمت مصر كفرعون؟", "hint": "أقوى ملكات مصر القديمة"},
+    {"word": "منف", "question": "ما هي أول عاصمة لمصر الموحدة؟", "hint": "بناها الملك مينا"},
+    {"word": "هيروغليف", "question": "ما اسم الكتابة المصرية القديمة؟", "hint": "تعني الكتابة المقدسة"},
+    {"word": "بردي", "question": "ما هي المادة التي كان يكتب عليها المصريون القدماء؟", "hint": "نبات ينمو على ضفاف النيل"},
+    {"word": "تحنيط", "question": "ما هي عملية حفظ جثث الموتى في مصر القديمة؟", "hint": "عملية دينية مقدسة"},
+    {"word": "مسلة", "question": "ما هو العمود الحجري الضخم المنتشر في المعابد المصرية؟", "hint": "ترمز لأشعة الشمس"},
+    {"word": "طيبة", "question": "ما هو الاسم القديم للأقصر؟", "hint": "عاصمة مصر القديمة"},
+    {"word": "كرنك", "question": "ما اسم أكبر معبد في مصر القديمة؟", "hint": "يقع في الأقصر"},
+    {"word": "رع", "question": "من هو إله الشمس في مصر القديمة؟", "hint": "من أهم الآلهة المصرية"},
+    {"word": "حورس", "question": "من هو الإله الذي يرمز له الصقر؟", "hint": "إله السماء"},
+    {"word": "ايزيس", "question": "من هي إلهة الأمومة في مصر القديمة؟", "hint": "زوجة أوزوريس"},
+    {"word": "جعران", "question": "ما هو الحشرة المقدسة عند المصريين القدماء؟", "hint": "ترمز للبعث"},
+    {"word": "كنوز", "question": "ماذا وجد في مقبرة توت عنخ آمون؟", "hint": "ثروات ذهبية"},
+    {"word": "اوزوريس", "question": "من هو إله الموتى في مصر القديمة؟", "hint": "حاكم العالم السفلي"},
+    {"word": "انوبيس", "question": "من هو الإله الذي يرمز له رأس ابن آوى؟", "hint": "إله التحنيط"},
+    {"word": "معابد", "question": "ما هي بيوت الآلهة في مصر القديمة؟", "hint": "أماكن العبادة"},
+    {"word": "نيل", "question": "ما اسم النهر الذي قامت عليه الحضارة المصرية؟", "hint": "هبة مصر"},
+    {"word": "فيضان", "question": "ما الظاهرة الطبيعية التي كانت سبب خصوبة مصر؟", "hint": "يحدث سنوياً"},
+    {"word": "مينا", "question": "من هو موحد القطرين؟", "hint": "أول ملوك مصر"},
+    {"word": "سفنكس", "question": "ما هو تمثال الأسد برأس إنسان؟", "hint": "حارس الأهرام"},
+    {"word": "محاصيل", "question": "ما الذي زرعه المصريون على ضفاف النيل؟", "hint": "مصدر الغذاء"},
+    {"word": "ابوالهول", "question": "ما هو الاسم العربي للسفنكس؟", "hint": "أبو الرعب"}
+  ];
+
+  // باقي الكود بدون تغيير ...
+  String currentWord = "";
+  String question = "";
+  String hint = "";
+  int currentLevel = 0;
+  int score = 0;
+  List<String> guessedLetters = [];
+  List<String> revealedLetters = [];
+  bool showHint = false;
+
+  late BannerAd bannerAd;
+  late InterstitialAd interstitialAd;
+  late RewardedAd rewardedAd;
+  late RewardedInterstitialAd rewardedInterstitialAd;
+  bool isBannerAdLoaded = false;
+  bool isInterstitialAdLoaded = false;
+  bool isRewardedAdLoaded = false;
+  bool isRewardedInterstitialAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadAds();
+    loadLevel();
+    showAppOpenAd();
+  }
+
+  void loadAds() {
+    bannerAd = BannerAd(
+      adUnitId: "ca-app-pub-9244590788989680/3701917807",
+      size: AdSize.banner,
+      request: AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (Ad ad) {
+          setState(() {
+            isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          ad.dispose();
+        },
+      ),
+    )..load();
+
+    InterstitialAd.load(
+      adUnitId: "ca-app-pub-9244590788989680/9629031908",
+      request: AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (InterstitialAd ad) {
+          interstitialAd = ad;
+          isInterstitialAdLoaded = true;
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          isInterstitialAdLoaded = false;
+        },
+      ),
+    );
+
+    RewardedAd.load(
+      adUnitId: "ca-app-pub-9244590788989680/3063623554",
+      request: AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardedAd ad) {
+          rewardedAd = ad;
+          isRewardedAdLoaded = true;
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          isRewardedAdLoaded = false;
+        },
+      ),
+    );
+
+    RewardedInterstitialAd.load(
+      adUnitId: "ca-app-pub-9244590788989680/7002868562",
+      request: AdRequest(),
+      rewardedInterstitialAdLoadCallback: RewardedInterstitialAdLoadCallback(
+        onAdLoaded: (RewardedInterstitialAd ad) {
+          rewardedInterstitialAd = ad;
+          isRewardedInterstitialAdLoaded = true;
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          isRewardedInterstitialAdLoaded = false;
+        },
+      ),
+    );
+  }
+
+  void showAppOpenAd() {
+    AppOpenAd.load(
+      adUnitId: "ca-app-pub-9244590788989680/8578839963",
+      request: AdRequest(),
+      adLoadCallback: AppOpenAdLoadCallback(
+        onAdLoaded: (AppOpenAd ad) {
+          ad.show();
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          // فشل تحميل الإعلان
+        },
+      ),
+      orientation: AppOpenAd.orientationPortrait,
+    );
+  }
+
+  void loadLevel() {
+    setState(() {
+      currentWord = pyramidWords[currentLevel]["word"]!;
+      question = pyramidWords[currentLevel]["question"]!;
+      hint = pyramidWords[currentLevel]["hint"]!;
+      guessedLetters.clear();
+      revealedLetters.clear();
+      showHint = false;
+    });
+  }
+
+  void handleLetterGuess(String letter) {
+    if (!guessedLetters.contains(letter)) {
+      setState(() {
+        guessedLetters.add(letter);
+        if (currentWord.contains(letter)) {
+          score += 10;
+        }
+      });
+    }
+  }
+
+  void skipLevel() {
+    if (currentLevel < pyramidWords.length - 1) {
+      if (isInterstitialAdLoaded) {
+        interstitialAd.show();
+      }
+      setState(() {
+        currentLevel++;
+        score = (score >= 20) ? score - 20 : 0;
+      });
+      loadLevel();
+    }
+  }
+
+  void revealHint() {
+    if (isRewardedAdLoaded) {
+      rewardedAd.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+          setState(() {
+            showHint = true;
+          });
+        },
+      );
+    }
+  }
+
+  void revealLetter() {
+    if (isRewardedInterstitialAdLoaded) {
+      rewardedInterstitialAd.show(
+        onUserEarnedReward: (AdWithoutView ad, RewardItem reward) {
+          final unrevealedLetters = currentWord
+              .split('')
+              .where((letter) => !guessedLetters.contains(letter) && !revealedLetters.contains(letter))
+              .toList();
+          if (unrevealedLetters.isNotEmpty) {
+            setState(() {
+              revealedLetters.add(unrevealedLetters.first);
+            });
+          }
+        },
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    bannerAd.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        appBar: AppBar(
+          title: Text("لعبة كلمات الأهرامات"),
+          backgroundColor: Colors.purple,
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "المستوى: ${currentLevel + 1} / ${pyramidWords.length}",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                "النقاط: $score",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                question,
+                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            if (showHint)
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  "تلميح: $hint",
+                  style: TextStyle(fontSize: 16, color: Colors.purple),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                currentWord.split('').map((letter) {
+                  return guessedLetters.contains(letter) || revealedLetters.contains(letter) ? letter : '_';
+                }).join(' '),
+                style: TextStyle(fontSize: 24, letterSpacing: 2, fontWeight: FontWeight.bold),
+              ),
+            ),
+            Spacer(),
+            Wrap(
+              spacing: 8.0,
+              runSpacing: 8.0,
+              children: 'ابتثجحخدذرزسشصضطظعغفقكلمنهوي'.split('').map((letter) {
+                return ElevatedButton(
+                  onPressed: guessedLetters.contains(letter) ? null : () => handleLetterGuess(letter),
+                  child: Text(letter),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: guessedLetters.contains(letter) ? Colors.grey : Colors.purple,
+                    minimumSize: Size(40, 40),
+                  ),
+                );
+              }).toList(),
+            ),
+            ElevatedButton(
+              onPressed: skipLevel,
